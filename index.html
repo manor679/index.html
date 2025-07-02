@@ -2,87 +2,92 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>LattéLink Check-In</title>
   <style>
     body {
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding-top: 50px;
-      background-color: #fdf6f0;
-      color: #333;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f7f1ea;
+      padding: 40px;
+      color: #4a2c18;
     }
+
     h1 {
-      margin-bottom: 20px;
-      color: #473324;
+      font-size: 2rem;
+      margin-bottom: 10px;
     }
+
+    p {
+      margin-bottom: 20px;
+      font-size: 1rem;
+    }
+
     input, button {
       font-size: 1rem;
-      padding: 10px;
+      padding: 12px;
       margin: 10px;
       width: 280px;
       border-radius: 6px;
       border: 1px solid #ccc;
     }
+
     button {
-      background-color: #a67c52;
+      background-color: #8b5e3c;
       color: white;
-      border: none;
       cursor: pointer;
     }
+
     #message {
       margin-top: 30px;
       font-weight: bold;
-      color: #473324;
+      font-size: 1.1rem;
     }
   </style>
 </head>
 <body>
 
-  <h1>LattéLink</h1>
-  <p>Check in to track your coffee rewards</p>
+  <h1>☕ LattéLink</h1>
+  <p>Enter your phone or email and the 6-digit staff code to earn a coffee</p>
 
-  <input type="text" id="userId" placeholder="Enter phone number or email" />
-  <input type="text" id="staffPin" placeholder="Ask staff for 6-digit PIN" maxlength="6" />
+  <input type="text" id="userId" placeholder="Email or Phone Number" />
+  <input type="text" id="staffPin" placeholder="Staff 6-digit Code" />
   <button onclick="submitForm()">Check In</button>
 
   <div id="message"></div>
 
   <script>
-    const backendUrl = "https://script.google.com/macros/s/AKfycbwgwv-5INrpSlRt2PK7xONlHD9t_MCw-E-y-BohoADRX_d-ynXzr_8ilXkeKPWAOpnLKA/exec";
+    const backendURL = "https://script.google.com/macros/s/AKfycbyG-4gDgCsM3qw3gLGuQ84oQ3aqKG33g53Y1PLnYEfaM-HC1eyuAR3jf2libeO_1p61kA/exec";
 
     async function submitForm() {
-      const userId = document.getElementById('userId').value.trim();
-      const pin = document.getElementById('staffPin').value.trim();
-      const messageDiv = document.getElementById('message');
+      const userId = document.getElementById("userId").value.trim();
+      const staffPin = document.getElementById("staffPin").value.trim();
+      const messageDiv = document.getElementById("message");
 
-      if (!userId || !pin) {
-        messageDiv.innerText = "Please enter both your ID and the staff PIN.";
+      if (!userId || !staffPin) {
+        messageDiv.innerText = "❌ Please enter both your ID and the staff code.";
         return;
       }
 
-      messageDiv.innerText = "Checking in...";
+      messageDiv.innerText = "⏳ Checking in...";
 
       try {
-        const response = await fetch(backendUrl, {
+        const response = await fetch(backendURL, {
           method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: `id=${encodeURIComponent(userId)}&pin=${encodeURIComponent(pin)}`
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+          },
+          body: `id=${encodeURIComponent(userId)}&pin=${encodeURIComponent(staffPin)}`
         });
 
-        const result = await response.json();
+        const data = await response.json();
 
-        if (result.error) {
-          messageDiv.innerText = "❌ " + result.error;
+        if (data.error) {
+          messageDiv.innerText = "❌ " + data.error;
         } else {
-          messageDiv.innerText = `✅ ${result.message} (Total coffees: ${result.coffees})`;
+          messageDiv.innerText = `✅ ${data.message} (Total: ${data.coffees} coffee${data.coffees === 1 ? "" : "s"})`;
         }
-
-      } catch (error) {
-        messageDiv.innerText = "🚨 Connection error: " + error.message;
-        console.error(error);
+      } catch (err) {
+        messageDiv.innerText = "🚨 Connection error: " + err.message;
       }
     }
   </script>
