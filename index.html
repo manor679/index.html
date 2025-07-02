@@ -1,50 +1,93 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>LattéLink Staff PIN</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LattéLink Customer Check-In</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 50px;
-      background: #fdf6f0;
+      font-family: sans-serif;
+      background-color: #fdf6f0;
+      color: #473324;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 50px 20px;
     }
-    h1 { color: #6a4e2a; }
-    .pin {
-      font-size: 60px;
-      font-weight: bold;
-      color: #b36b00;
+    h1 {
+      margin-bottom: 20px;
+    }
+    input, button {
+      font-size: 1rem;
+      padding: 10px;
+      margin: 10px 0;
+      width: 280px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #a67c52;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    #message {
       margin-top: 30px;
-    }
-    .note {
-      margin-top: 20px;
-      font-style: italic;
-      color: #555;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <h1>Staff PIN</h1>
-  <div class="pin" id="pin">Loading...</div>
-  <div class="note">This code changes every 30 seconds.</div>
+
+  <h1>LattéLink</h1>
+  <p>Enter your email or phone number, and staff PIN</p>
+
+  <input type="text" id="userId" placeholder="Enter phone number or email" />
+  <input type="text" id="staffPin" placeholder="Ask staff for 6-digit PIN" maxlength="6" />
+  <button onclick="submitCheckIn()">Check In</button>
+
+  <div id="message"></div>
 
   <script>
-    const url = "https://script.google.com/macros/s/AKfycbzZCbg5FjW_T_TxEQPuwVqdwc9fnKNkde1gr51eOz0aGGUe6hSeRfD4lz-mtIn1cIjkjg/exec";
+    const backendUrl = "https://script.google.com/macros/s/AKfycbzZCbg5FjW_T_TxEQPuwVqdwc9fnKNkde1gr51eOz0aGGUe6hSeRfD4lz-mtIn1cIjkjg/exec";
 
-    async function loadPin() {
+    async function submitCheckIn() {
+      const userId = document.getElementById('userId').value.trim();
+      const pin = document.getElementById('staffPin').value.trim();
+      const messageDiv = document.getElementById('message');
+
+      if (!userId || !pin) {
+        messageDiv.textContent = "Please enter both your ID and the staff PIN.";
+        return;
+      }
+
+      messageDiv.textContent = "Checking in...";
+
       try {
-        const res = await fetch(url);
-        const html = await res.text();
-        document.open();
-        document.write(html);
-        document.close();
-      } catch {
-        document.getElementById("pin").innerText = "❌ Error loading PIN";
+        const response = await fetch(backendUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+          },
+          body: `id=${encodeURIComponent(userId)}&pin=${encodeURIComponent(pin)}`
+        });
+
+        if (!response.ok) {
+          throw new Error(`Server error: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.error) {
+          messageDiv.textContent = "❌ " + data.error;
+        } else {
+          messageDiv.textContent = `✅ ${data.message} (Total coffees: ${data.coffees})`;
+        }
+      } catch (error) {
+        messageDiv.textContent = "🚨 Connection error: " + error.message;
       }
     }
-
-    loadPin();
-    setInterval(loadPin, 30000); // refresh every 30 sec
   </script>
+
 </body>
 </html>
