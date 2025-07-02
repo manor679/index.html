@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>LattéLink Staff PIN</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 50px;
+      background: #fdf6f0;
+    }
+    h1 { color: #6a4e2a; }
+    .pin {
+      font-size: 60px;
+      font-weight: bold;
+      color: #b36b00;
+      margin-top: 30px;
+    }
+    .note {
+      margin-top: 20px;
+      font-style: italic;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <h1>Staff PIN</h1>
+  <div class="pin" id="pin">Loading...</div>
+  <div class="note">This code changes every 30 seconds.</div>
+
+  <script>
+    const url = "https://script.google.com/macros/s/AKfycbzZCbg5FjW_T_TxEQPuwVqdwc9fnKNkde1gr51eOz0aGGUe6hSeRfD4lz-mtIn1cIjkjg/exec";
+
+    async function loadPin() {
+      try {
+        const res = await fetch(url);
+        const html = await res.text();
+        document.open();
+        document.write(html);
+        document.close();
+      } catch {
+        document.getElementById("pin").innerText = "❌ Error loading PIN";
+      }
+    }
+
+    loadPin();
+    setInterval(loadPin, 30000); // refresh every 30 sec
+  </script>
+</body>
+</html>
